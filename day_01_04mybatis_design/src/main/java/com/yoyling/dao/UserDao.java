@@ -1,7 +1,7 @@
 package com.yoyling.dao;
 
 import com.yoyling.domain.User;
-import org.apache.ibatis.annotations.Select;
+import com.yoyling.mybatis.annotations.Select;
 
 import java.util.List;
 
