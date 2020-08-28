@@ -41,13 +41,13 @@
 
    单表CRUD------多表查询
 
-## 什么是框架？
+### 什么是框架？
 
 它是我们软件开发中的一套解决方案，不同的框架解决的是不同的问题。
 
 使用框架的好处：框架封装了很多的细节，使开发者可以使用极简的方式实现功能。大大提高开发效率。
 
-## 三层架构
+### 三层架构
 
 表现层：是用于展示数据的
 
@@ -55,7 +55,7 @@
 
 持久层：是和数据库交互的
 
-## 持久层技术解决方案
+### 持久层技术解决方案
 
 1. JDBC技术：**Connection**、**PreparedStatement**、**ResultSet**
 
@@ -65,7 +65,7 @@
 
    以上这些都不是框架，JDBC是规范，Spring的JdbcTemplate和Apache的DBUtils都只是工具类
 
-## mybatis的概述
+### mybatis的概述
 
 mybatis是一个持久层框架，用java编写的。
 
@@ -79,7 +79,7 @@ mybatis是一个持久层框架，用java编写的。
 
 
 
-## day_01_01mybatis
+## day_01_01mybatis入门
 
 **建库建表：mybatistest.sql**
 
@@ -105,3 +105,90 @@ values
 (48,'小马宝莉','2018-03-08 11:44:00','女','湖南');
 ```
 
+### mybatis的环境搭建：
+
+1. 创建maven工程并导入坐标
+
+2. 创建实体类和dao的接口
+
+3. 创建Mybatis的主配置文件
+
+   SqlMapConifg.xml
+
+4. 创建映射配置文件
+
+   UserDao.xml
+
+### 环境搭建的注意事项：
+
+1. 创建UserDao.xml 和 UserDao.java时名称是为了和我们之前的知识保持一致。在Mybatis中它把持久层的操作接口名称和映射文件也叫做：Mapper
+
+   所以：UserDao 和 UserMapper是一样的
+
+2. 在idea中创建目录的时候，它和包是不一样的
+
+   包在创建时：com.yoyling.dao它是三级结构
+
+   目录在创建时：com.yoyling.dao是一级目录
+
+3. mybatis的映射配置文件位置必须和dao接口的包结构相同
+
+4. 映射配置文件的mapper标签namespace属性的取值必须是dao接口的全限定类名
+
+5. 映射配置文件的操作配置（select），id属性的取值必须是dao接口的方法名
+
+   当我们遵从了第三，四，五点之后，我们在开发中就无须再写dao的实现类。
+
+### mybatis的入门案例：
+
+1. 读取配置文件
+2. 第二步：创建SqlSessionFactory工厂
+3. 创建SqlSession
+4. 创建Dao接口的代理对象
+5. 执行dao中的方法
+6. 释放资源
+
+### 注意事项：
+
+不要忘记在映射配置中告知mybatis要封装到哪个实体类中
+
+配置的方式：指定实体类的全限定类名
+
+## day_01_02mybatis_annotation
+
+**mybatis基于注解的入门案例：**
+
+把UserDao.xml移除，在dao接口的方法上使用@Select注解，并且指定SQL语句。
+
+同时需要在SqlMapConfig.xml中的mapper配置时，使用class属性指定dao接口的全限定类名。
+
+**明确：**
+
+我们在实际开发中，都是越简便越好，所以都是采用不写dao实现类的方式。
+
+不管使用XML还是注解配置。
+
+但是Mybatis它是支持写dao实现类的。
+
+## day_01_03mybatis_dao
+
+Mybatis的dao实现类
+
+## day_01_04mybatis_design
+
+**自定义Mybatis的分析：**
+
+mybatis在使用代理dao的方式实现增删改查时做什么事呢？
+
+1. 创建代理对象
+2. 在代理对象中调用selectList
+
+**自定义mybatis能通过入门案例看到类：**
+
+- class Resources
+
+- class SqlSessionFactoryBuilder
+
+- interface SqlSessionFactory
+
+- interface SqlSession
