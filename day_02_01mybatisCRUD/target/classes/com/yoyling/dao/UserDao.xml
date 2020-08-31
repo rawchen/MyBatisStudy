@@ -3,7 +3,28 @@
 		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yoyling.dao.UserDao">
+	<!-- 查询所有 -->
 	<select id="findAll" resultType="com.yoyling.domain.User">
-		select * from user
+		select * from user;
+	</select>
+
+	<!-- 保存用户 -->
+	<insert id="saveUser" parameterType="com.yoyling.domain.User">
+		insert into user(username,address,sex,birthday)values(#{username},#{address},#{sex},#{birthday});
+	</insert>
+
+	<!-- 更新用户 -->
+	<update id="updateUser" parameterType="com.yoyling.domain.User">
+		update user set username=#{username},address=#{address},sex=#{sex},birthday=#{birthday} where id=#{id};
+	</update>
+
+	<!-- 删除用户 -->
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{uid}
+	</delete>
+
+	<!-- 根据id查询用户 -->
+	<select id="findById" parameterType="int" resultType="com.yoyling.domain.User">
+		select * from user where id = #{uid}
 	</select>
 </mapper>
