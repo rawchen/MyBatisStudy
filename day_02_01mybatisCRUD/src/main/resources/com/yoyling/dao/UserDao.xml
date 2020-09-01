@@ -27,4 +27,15 @@
 	<select id="findById" parameterType="int" resultType="com.yoyling.domain.User">
 		select * from user where id = #{uid}
 	</select>
+
+	<!-- 根据名称模糊查询 -->
+	<select id="findByName" parameterType="String" resultType="com.yoyling.domain.User">
+ 		select * from user where username like #{username}
+	<!-- select * from user where username like '%${value}%' -->
+</select>
+
+<!-- 查询总用户数 -->
+	<select id="findTotal" resultType="int">
+		select count(id) from user;
+	</select>
 </mapper>

@@ -93,4 +93,25 @@ public class MybatisTest {
         User user = userDao.findById(48);
         System.out.println(user);
     }
+
+    /**
+     * 测试模糊查询操作
+     */
+    @Test
+    public void testFindByName() {
+        List<User> users = userDao.findByName("%王%");
+//        List<User> users = userDao.findByName("王");
+        for (User user : users) {
+            System.out.println(user);
+        }
+    }
+
+    /**
+     * 测试查询总记录条数操作
+     */
+    @Test
+    public void testFindTotal() {
+        int count = userDao.findTotal();
+        System.out.println(count);
+    }
 }
