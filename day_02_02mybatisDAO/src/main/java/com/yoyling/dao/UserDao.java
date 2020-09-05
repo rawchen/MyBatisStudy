@@ -1,6 +1,5 @@
 package com.yoyling.dao;
 
-import com.yoyling.domain.QueryVo;
 import com.yoyling.domain.User;
 
 import java.util.List;
@@ -53,11 +52,4 @@ public interface UserDao {
      * @return
      */
     int findTotal();
-
-    /**
-     * 根据queryVo中的条件查询用户
-     * @param vo
-     * @return
-     */
-    List<User> findUserByVo(QueryVo vo);
 }

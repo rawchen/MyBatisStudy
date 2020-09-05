@@ -1,10 +1,9 @@
 package com.yoyling.test;
 
 import com.yoyling.dao.UserDao;
-import com.yoyling.domain.QueryVo;
+import com.yoyling.dao.impl.UserDaoImpl;
 import com.yoyling.domain.User;
 import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.After;
@@ -21,23 +20,19 @@ import java.util.List;
 public class MybatisTest {
 
     private InputStream in;
-    private SqlSession sqlSession;
     private UserDao userDao;
 
     @Before     //用于在测试方法执行之前执行
     public void init() throws Exception {
         in = Resources.getResourceAsStream("sqlMapConfig.xml");
         SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
-        sqlSession = factory.openSession();
-        userDao = sqlSession.getMapper(UserDao.class);
+
+
+        userDao = new UserDaoImpl(factory);
     }
 
     @After     //用于在测试方法执行之后执行
     public void destroy() throws Exception {
-        //提交事务
-        sqlSession.commit();
-
-        sqlSession.close();
         in.close();
     }
 
@@ -55,10 +50,10 @@ public class MybatisTest {
     @Test
     public void testSave() {
         User user = new User();
-        user.setUserName("yoyling 最后插入");
-        user.setUserAddress("福建省厦门市");
-        user.setUserSex("男");
-        user.setUserBirthday(new Date());
+        user.setUsername("yoyling 最后插入");
+        user.setAddress("福建省厦门市");
+        user.setSex("男");
+        user.setBirthday(new Date());
 
         System.out.println("保存操作前：" + user);
         userDao.saveUser(user);
@@ -71,11 +66,11 @@ public class MybatisTest {
     @Test
     public void testUpdate() {
         User user = new User();
-        user.setUserId(50);
-        user.setUserName("mybatis");
-        user.setUserAddress("福建省漳州市");
-        user.setUserSex("女");
-        user.setUserBirthday(new Date());
+        user.setId(50);
+        user.setUsername("mybatis");
+        user.setAddress("福建省漳州市");
+        user.setSex("女");
+        user.setBirthday(new Date());
 
         userDao.updateUser(user);
     }
@@ -116,20 +111,5 @@ public class MybatisTest {
     public void testFindTotal() {
         int count = userDao.findTotal();
         System.out.println(count);
-    }
-
-    /**
-     * 测试使用QueryVo作为查询条件
-     */
-    @Test
-    public void testFindByVo() {
-        QueryVo vo = new QueryVo();
-        User user = new User();
-        user.setUserName("%王%");
-        vo.setUser(user);
-        List<User> users = userDao.findUserByVo(vo);
-        for (User u : users) {
-            System.out.println(u);
-        }
     }
 }
