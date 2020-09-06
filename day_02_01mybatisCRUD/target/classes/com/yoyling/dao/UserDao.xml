@@ -5,7 +5,7 @@
 <mapper namespace="com.yoyling.dao.UserDao">
 
 	<!-- 配置查询结果的列名和实体类的属性名的对应关系 -->
-	<resultMap id="userMap" type="com.yoyling.domain.User">
+	<resultMap id="userMap" type="user">
 		<!-- 主键字段对应 -->
 		<id property="userId" column="id"/>
 		<!-- 非主键字段对应 -->
@@ -22,7 +22,7 @@
 	</select>
 
 	<!-- 保存用户 -->
-	<insert id="saveUser" parameterType="com.yoyling.domain.User">
+	<insert id="saveUser" parameterType="user">
 		<!-- 配置插入操作后，获取插入数据的id -->
 		<selectKey keyProperty="userId" keyColumn="id" resultType="int" order="AFTER">
 			select last_insert_id();
@@ -31,7 +31,7 @@
 	</insert>
 
 	<!-- 更新用户 -->
-	<update id="updateUser" parameterType="com.yoyling.domain.User">
+	<update id="updateUser" parameterType="user">
 		update user set username=#{userName},address=#{userAddress},sex=#{userSex},birthday=#{userBirthday} where id=#{userId};
 	</update>
 

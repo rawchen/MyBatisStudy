@@ -3,18 +3,35 @@
 		PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 		"http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+	<properties resource="jdbcConfig.properties">
+		<!--<property name="driver" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/mybatistest"/>
+		<property name="username" value="root"/>
+		<property name="password" value="root"/>-->
+	</properties>
+
+	<!-- 使用typeAliases配置别名，它只能配置domain中类的别名 -->
+	<typeAliases>
+		<!-- typeAlias用于配置别名。type属性指定的是实体类全限定类名。alias属性指定别名，当指定了别名就不再区分大小写
+		<typeAlias type="com.yoyling.domain.User" alias="user"/> -->
+		<!-- 用于指定要配置别名的包，当指定之后该包下的实体类都会注册别名，并且类名就是别名，不再区分大小写 -->
+		<package name="com.yoyling.domain"/>
+	</typeAliases>
+
 	<environments default="mysql">
 		<environment id="mysql">
 			<transactionManager type="JDBC"/>
 			<dataSource type="POOLED">
-				<property name="driver" value="com.mysql.jdbc.Driver"/>
-				<property name="url" value="jdbc:mysql://localhost:3306/mybatistest"/>
-				<property name="username" value="root"/>
-				<property name="password" value="root"/>
+				<property name="driver" value="${jdbc.driver}"/>
+				<property name="url" value="${jdbc.url}"/>
+				<property name="username" value="${jdbc.username}"/>
+				<property name="password" value="${jdbc.password}"/>
 			</dataSource>
 		</environment>
 	</environments>
 	<mappers>
-		<mapper resource="com/yoyling/dao/UserDao.xml"/>
+		<!--<mapper resource="com/yoyling/dao/UserDao.xml"/>-->
+		<!-- package标签是用于指定dao接口所在的包,当指定了之后就不需要再写resource或者class了 -->
+		<package name="com.yoyling.dao"/>
 	</mappers>
 </configuration>
