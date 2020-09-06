@@ -79,7 +79,7 @@ mybatis是一个持久层框架，用java编写的。
 
 
 
-## day_01_01mybatis入门
+## 01_01mybatis入门
 
 **建库建表：mybatistest.sql**
 
@@ -148,13 +148,90 @@ values
 5. 执行dao中的方法
 6. 释放资源
 
+
+
+实体类**User.java**
+
+接口**UserDao**，一个 **List<User> findAll()**
+
+**测试main方法：**
+
+```Java
+//1.读取配置文件
+InputStream in = Resources.getResourceAsStream("SqlMapConfig.xml");
+//2.创建SqlSessionFactory工厂
+SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+SqlSessionFactory factory = builder.build(in);
+//3.使用工厂生产SqlSession对象
+SqlSession session = factory.openSession();
+//4.使用SqlSession创建Dao接口的代理对象
+UserDao userDao = session.getMapper(UserDao.class);
+//5.使用代理对象执行方法
+List<User> users = userDao.findAll();
+for (User user : users) {
+    System.out.println(user);
+}
+//6.释放资源
+session.close();
+in.close();
+```
+
+**SqlMapConfig.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+		PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- mybatis的主配置文件 -->
+<configuration>
+	<!-- 配置环境 -->
+	<environments default="mysql">
+		<!-- 配置mysql环境 -->
+		<environment id="mysql">
+			<!-- 配置事务的类型 -->
+			<transactionManager type="JDBC"/>
+			<!-- 配置数据源（连接池） -->
+			<dataSource type="POOLED">
+				<!-- 配置连接数据库的4个基本信息的 -->
+				<property name="driver" value="com.mysql.jdbc.Driver"/>
+				<property name="url" value="jdbc:mysql://localhost:3306/mybatistest"/>
+				<property name="username" value="root"/>
+				<property name="password" value="root"/>
+			</dataSource>
+		</environment>
+	</environments>
+
+	<!-- 指定映射配置文件的位置，映射配置文件指的是每个dao独立的配置文件 -->
+	<mappers>
+		<mapper resource="com/yoyling/dao/UserDao.xml"/>
+	</mappers>
+</configuration>
+```
+
+**UserDao.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yoyling.dao.UserDao">
+	<select id="findAll" resultType="com.yoyling.domain.User">
+		select * from user;
+	</select>
+</mapper>
+```
+
+
+
 ### 注意事项：
 
 不要忘记在映射配置中告知mybatis要封装到哪个实体类中
 
 配置的方式：指定实体类的全限定类名
 
-## day_01_02mybatis_annotation
+## 01_02mybatis_annotation
 
 **mybatis基于注解的入门案例：**
 
@@ -170,11 +247,11 @@ values
 
 但是Mybatis它是支持写dao实现类的。
 
-## day_01_03mybatis_dao
+## 01_03mybatis_dao
 
 Mybatis的dao实现类
 
-## day_01_04mybatis_design
+## 01_04mybatis_design
 
 **自定义Mybatis的分析：**
 
@@ -186,11 +263,12 @@ mybatis在使用代理dao的方式实现增删改查时做什么事呢？
 **自定义mybatis能通过入门案例看到类：**
 
 - class Resources
-
 - class SqlSessionFactoryBuilder
-
 - interface SqlSessionFactory
-
 - interface SqlSession
 
-## day_02_01mybatisCRUD
+## 02_01mybatisCRUD
+
+
+
+## 02_02mybatisDAO
