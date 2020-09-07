@@ -554,3 +554,120 @@ jdbc.password = root
 
 ## 02_02mybatisDAO
 
+mybatis也可以自己编写Dao实现或者使用代理Dao实现。
+
+**UserDaoImpl.java**
+
+```java
+package com.yoyling.dao.impl;
+
+public class UserDaoImpl implements UserDao {
+
+    private SqlSessionFactory factory;
+
+    public UserDaoImpl(SqlSessionFactory factory) {
+        this.factory = factory;
+    }
+
+    @Override
+    public List<User> findAll() {
+        //1.根据factory获取SqlSession对象
+        SqlSession session = factory.openSession();
+        //2.调用SqlSession中的方法，实现查询列表
+        List<User> users = session.selectList("com.yoyling.dao.UserDao.findAll");//参数就是能获取配置信息的key
+        //3.释放资源
+        session.close();
+        return users;
+    }
+
+    @Override
+    public void saveUser(User user) {
+        //1.根据factory获取SqlSession对象
+        SqlSession session = factory.openSession();
+        //2.调用方法实现保存
+        session.insert("com.yoyling.dao.UserDao.saveUser",user);
+        //3.提交事务
+        session.commit();
+        //4.释放资源
+        session.close();
+    }
+
+    @Override
+    public void updateUser(User user) {
+        //1.根据factory获取SqlSession对象
+        SqlSession session = factory.openSession();
+        //2.调用方法实现更新
+        session.update("com.yoyling.dao.UserDao.updateUser",user);
+        //3.提交事务
+        session.commit();
+        //4.释放资源
+        session.close();
+    }
+}
+```
+
+**MybatisTest.java**
+
+```java
+package com.yoyling.test;
+
+/**
+ * 测试mybatis的crud操作
+ */
+public class MybatisTest {
+
+    private InputStream in;
+    private UserDao userDao;
+
+    @Before     //用于在测试方法执行之前执行
+    public void init() throws Exception {
+        in = Resources.getResourceAsStream("sqlMapConfig.xml");
+        SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+        userDao = new UserDaoImpl(factory);
+    }
+
+    @After     //用于在测试方法执行之后执行
+    public void destroy() throws Exception {
+        in.close();
+    }
+
+    @Test
+    public void testFindAll(){
+        List<User> users = userDao.findAll();
+        for (User user : users) {
+            System.out.println(user);
+        }
+    }
+
+    /**
+     * 测试保存操作
+     */
+    @Test
+    public void testSave() {
+        User user = new User();
+        user.setUsername("yoyling 最后插入");
+        user.setAddress("福建省厦门市");
+        user.setSex("男");
+        user.setBirthday(new Date());
+
+        System.out.println("保存操作前：" + user);
+        userDao.saveUser(user);
+        System.out.println("保存操作后：" + user);
+    }
+
+    /**
+     * 测试更新操作
+     */
+    @Test
+    public void testUpdate() {
+        User user = new User();
+        user.setId(49);
+        user.setUsername("mybatis");
+        user.setAddress("福建省漳州市");
+        user.setSex("女");
+        user.setBirthday(new Date());
+
+        userDao.updateUser(user);
+    }
+}
+```
