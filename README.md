@@ -269,6 +269,74 @@ mybatis在使用代理dao的方式实现增删改查时做什么事呢？
 
 ## 02_01mybatisCRUD
 
+UserDao.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yoyling.dao.UserDao">
+
+	<!-- 配置查询结果的列名和实体类的属性名的对应关系 -->
+	<resultMap id="userMap" type="user">
+		<!-- 主键字段对应 -->
+		<id property="userId" column="id"/>
+		<!-- 非主键字段对应 -->
+		<result property="userName" column="username"/>
+		<result property="userAddress" column="address"/>
+		<result property="userSex" column="sex"/>
+		<result property="userBirthday" column="birthday"/>
+	</resultMap>
+
+	<!-- 查询所有 -->
+	<select id="findAll" resultMap="userMap">
+		<!--select id as userId,username as userName,address as userAddress,sex as userSex,birthday as userBirthday from user;-->
+		select * from user;
+	</select>
+
+	<!-- 保存用户 -->
+	<insert id="saveUser" parameterType="user">
+		<!-- 配置插入操作后，获取插入数据的id -->
+		<selectKey keyProperty="userId" keyColumn="id" resultType="int" order="AFTER">
+			select last_insert_id();
+		</selectKey>
+		insert into user(username,address,sex,birthday)values(#{userName},#{userAddress},#{userSex},#{userBirthday});
+	</insert>
+
+	<!-- 更新用户 -->
+	<update id="updateUser" parameterType="user">
+		update user set username=#{userName},address=#{userAddress},sex=#{userSex},birthday=#{userBirthday} where id=#{userId};
+	</update>
+
+	<!-- 删除用户 -->
+	<delete id="deleteUser" parameterType="int">
+		delete from user where id = #{uid}
+	</delete>
+
+	<!-- 根据id查询用户 -->
+	<select id="findById" parameterType="int" resultMap="userMap">
+		select * from user where id = #{uid}
+	</select>
+
+	<!-- 根据名称模糊查询 -->
+	<select id="findByName" parameterType="String" resultMap="userMap">
+ 		select * from user where username like #{username}
+		<!-- select * from user where username like '%${value}%' -->
+	</select>
+
+	<!-- 查询总用户数 -->
+	<select id="findTotal" resultType="int">
+		select count(id) from user;
+	</select>
+
+	<!-- 根据queryVo的条件查询用户 -->
+	<select id="findUserByVo" parameterType="com.yoyling.domain.QueryVo" resultMap="userMap">
+		select * from user where username like #{user.userName}
+	</select>
+</mapper>
+```
+
 
 
 ## 02_02mybatisDAO
