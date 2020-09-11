@@ -28,14 +28,14 @@ public class MybatisTest {
     public void init() throws Exception {
         in = Resources.getResourceAsStream("sqlMapConfig.xml");
         SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
-        sqlSession = factory.openSession();
+        sqlSession = factory.openSession(true);
         userDao = sqlSession.getMapper(UserDao.class);
     }
 
     @After     //用于在测试方法执行之后执行
     public void destroy() throws Exception {
         //提交事务
-        sqlSession.commit();
+        //sqlSession.commit();
 
         sqlSession.close();
         in.close();
