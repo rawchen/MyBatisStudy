@@ -672,4 +672,99 @@ public class MybatisTest {
 }
 ```
 
-## 03_01
+## 03_01datasourceAndTx
+
+**连接池：**
+
+* 我们在实际开发中都会使用连接池。
+* 因为它可以减少我们获取连接所消耗的时间。
+
+**mybatis中的连接池：**
+
+主配置文件SqlMapConfig.xml中的dataSource标签，type属性就是表示采用何种连接池方式。
+
+
+
+**type属性的取值：**
+
+**POOLED ** 采用传统的javax.sql.DataSource规范中的连接池，mybatis中有针对规范的实现。
+
+**UNPOOLED**  采用传统的获取连接的方式，虽然也实现Javax.sql.DataSource接口，但是并没有使用池的思想。
+
+**JNDI ** 采用服务器提供的JNDI技术实现，来获取DataSource对象，不同的服务器所能拿到DataSource是不一样。
+
+
+
+**mybatis中的事务**
+
+什么是事务、事务的四大特性ACID、不考虑隔离性会产生的3个问题、解决办法：四种隔离级别
+
+它是通过sqlsession对象的commit方法和rollback方法实现事务的提交和回滚
+
+## 03_02dynamicSQL
+
+MyBatis动态SQL（select查询）常用标签： <where><if><foreach>
+
+```xml
+<!-- 了解的内容:抽取重复的sql语句 -->
+<sql id="defaultUser">
+   select * from user
+</sql>
+
+<!-- 查询所有 -->
+<select id="findAll" resultMap="userMap">
+   <include refid="defaultUser"/>
+</select>
+
+<!-- 根据条件查询
+<select id="findUserByCondition" resultMap="userMap" parameterType="user">
+   select * from user where 1 = 1
+   <if test="userName != null">
+      and username = #{userName}
+   </if>
+   <if test="userSex != null">
+      and sex = #{userSex}
+   </if>
+</select> -->
+<select id="findUserByCondition" resultMap="userMap" parameterType="user">
+   <include refid="defaultUser"/>
+   <where>
+      <if test="userName != null">
+         and username = #{userName}
+      </if>
+      <if test="userSex != null">
+         and sex = #{userSex}
+      </if>
+   </where>
+</select>
+
+<!-- 根据queryvo中提供的id集合查询用户列表 -->
+<select id="findUserInIds" resultMap="userMap" parameterType="queryvo">
+   <include refid="defaultUser"/>
+   <where>
+      <if test="ids != null and ids.size()>0">
+         <foreach collection="ids" open="and id in (" close=")" item="id" separator=",">
+            #{id}
+         </foreach>
+      </if>
+   </where>
+</select>
+```
+
+多表关系操作，添加账户表：
+
+```SQL
+DROP TABLE IF EXISTS `account`;
+
+CREATE TABLE `account` (
+  `ID` int(11) NOT NULL COMMENT '编号',
+  `UID` int(11) default NULL COMMENT '用户编号',
+  `MONEY` double default NULL COMMENT '金额',
+  PRIMARY KEY  (`ID`),
+  KEY `FK_Reference_8` (`UID`),
+  CONSTRAINT `FK_Reference_8` FOREIGN KEY (`UID`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+insert  into `account`(`ID`,`UID`,`MONEY`) values (1,46,1000),(2,45,1000),(3,46,2000);
+```
+
