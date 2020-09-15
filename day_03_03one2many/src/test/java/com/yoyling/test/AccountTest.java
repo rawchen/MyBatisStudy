@@ -2,6 +2,7 @@ package com.yoyling.test;
 
 import com.yoyling.dao.AccountDao;
 import com.yoyling.domain.Account;
+import com.yoyling.domain.AccountUser;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -40,6 +41,18 @@ public class AccountTest {
         List<Account> users = accountDao.findAll();
         for (Account account : users) {
             System.out.println(account);
+            System.out.println(account.getUser());
+        }
+    }
+
+    /**
+     * 测试查询所有账户，同时包含用户名称和地址
+     */
+    @Test
+    public void testFindAllAccountUser(){
+        List<AccountUser> aus = accountDao.findAllAccount();
+        for (AccountUser au : aus) {
+            System.out.println(au);
         }
     }
 }

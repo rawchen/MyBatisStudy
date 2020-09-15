@@ -1,6 +1,7 @@
 package com.yoyling.dao;
 
 import com.yoyling.domain.Account;
+import com.yoyling.domain.AccountUser;
 
 import java.util.List;
 
@@ -11,5 +12,11 @@ public interface AccountDao {
      * @return
      */
     List<Account> findAll();
+
+    /**
+     * 查询所有账户，并且带有用户名称和地址信息
+     * @return
+     */
+    List<AccountUser> findAllAccount();
 
 }
