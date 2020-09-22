@@ -768,5 +768,3 @@ CREATE TABLE `account` (
 insert  into `account`(`ID`,`UID`,`MONEY`) values (1,46,1000),(2,45,1000),(3,46,2000);
 ```
 ## 03_03one2many
-
-123456
