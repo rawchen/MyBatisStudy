@@ -751,7 +751,11 @@ MyBatis动态SQL（select查询）常用标签： <where><if><foreach>
 </select>
 ```
 
-多表关系操作，添加账户表：
+
+
+## 03_03one2many
+
+多表关系操作，添加账户 **account** 表：
 
 ```SQL
 DROP TABLE IF EXISTS `account`;
@@ -767,7 +771,237 @@ CREATE TABLE `account` (
 
 insert  into `account`(`ID`,`UID`,`MONEY`) values (1,46,1000),(2,45,1000),(3,46,2000);
 ```
-## 03_03one2many
 
-一对一和一对多
-1234
+**MyBatis中的多表查询举例：**
+
+* **一对多(多对一)： **订单和用户
+
+* **一对一 ：** 一人一个身份证号
+
+* **多对多： **老师和学生
+
+以下代码示例：**用户**和**账户**
+
+* 一个用户有多个账户
+
+* 一个账户只能属于一个用户
+
+1.建立两表，用户表、账户表
+
+* 之间一对多关系用外键关联
+
+2.建立两实体类，用户类、账户类
+
+* 让实体类体现出一对多关系
+
+3.建立两配置文件
+
+4.实现配置
+
+* 当我们查询用户时，可以同时得到用户下所包含的账户信息
+* 当我们查询账户时，可以同时得到账户的所属用户信息
+
+### 一对一：
+
+**第一种关系体现方式：新建AccountUser类**，继承Account，然后加入用户名和地址的属性；在toString()加上super.toString
+
+```Java
+public class AccountUser extends Account {
+
+    private String username;
+    private String address;
+
+    public String getUsername() {return username;}
+
+    public void setUsername(String username) {this.username = username;}
+
+    public String getAddress() {return address;}
+
+    public void setAddress(String address) {this.address = address;}
+
+    @Override
+    public String toString() {
+        return super.toString()+"     AccountUser{" +
+                "username='" + username + '\'' +
+                ", address='" + address + '\'' +
+                '}';
+    }
+}
+
+<!-- 查询所有账户并且包含用户名和地址信息 -->
+<select id="findAllAccount" resultType="accountuser">
+   select a.*,u.username,u.address from account a,user u where u.id = a.uid;
+</select>
+```
+
+**第二种关系体现方式：从表实体包含主表实体的对象引用**
+
+Account.java
+
+```Java
+public class Account implements Serializable {
+    private Integer id;
+    private Integer uid;
+    private double money;
+
+    //从表实体应该包含一个主表实体的对象引用
+    private User user;
+
+    public User getUser() {return user;}
+    public void setUser(User user) {this.user = user;}
+    
+    public Integer getId() {return id;}
+    public void setId(Integer id) {this.id = id;}
+    public Integer getUid() {return uid;}
+    public void setUid(Integer uid) {this.uid = uid;}
+    public double getMoney() {return money;}
+    public void setMoney(double money) {this.money = money;}
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", uid=" + uid +
+                ", money=" + money +
+                '}';
+    }
+}
+```
+
+AccountDao.xml
+
+```xml
+<!-- 定义封装account和user的resultMap -->
+<resultMap id="accountUserMap" type="account">
+   <id property="id" column="aid"/>
+   <result property="uid" column="uid"/>
+   <result property="money" column="money"/>
+   <!-- 一对一的关系映射：配置封装user的内容 -->
+   <association property="user" column="uid" javaType="user">
+      <id    property="id" column="id"></id>
+      <result column="username" property="username"></result>
+      <result column="address" property="address"></result>
+      <result column="sex" property="sex"></result>
+      <result column="birthday" property="birthday"></result>
+   </association>
+</resultMap>
+
+<!-- 查询所有 -->
+<select id="findAll" resultMap="accountUserMap">
+   select u.*,a.id as aid,a.uid,a.money from account a,user u where u.id = a.uid;
+</select>
+```
+
+AccountTest.java
+
+```java
+@Test
+public void testFindAll(){
+    List<Account> users = accountDao.findAll();
+    for (Account account : users) {
+        System.out.println(account);
+        System.out.println(account.getUser());
+    }
+}
+```
+
+### 一对多：
+
+User.java
+
+```Java
+public class User implements Serializable {
+    private Integer id;
+    private String username;
+    private String sex;
+    private String address;
+    private Date birthday;
+
+    //一对多关系映射：主表实体应该包含从表实体的集合引用
+    private List<Account> accounts;
+
+    public List<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
+    }
+    ......
+}
+```
+
+UserDao.xml
+
+```xml
+<!-- 定义User的resultMap -->
+<resultMap id="userAccountMap" type="user">
+   <id    property="id" column="id"/>
+   <result property="username" column="username"/>
+   <result property="address" column="address"/>
+   <result property="sex" column="sex"/>
+   <result property="birthday" column="birthday"/>
+   <!-- 配置user对象中accounts集合的映射 -->
+   <collection property="accounts" ofType="account">
+      <id    column="aid" property="id"/>
+      <result column="uid" property="uid"/>
+      <result column="money" property="money"/>
+   </collection>
+</resultMap>
+<!-- 查询所有 -->
+<select id="findAll" resultMap="userAccountMap">
+   select * from user u left outer join account a on u.id = a.uid
+</select>
+```
+
+UserTest.java
+
+```Java
+@Test
+public void testFindAll(){
+    List<User> users = userDao.findAll();
+    for (User user : users) {
+        System.out.println(user);
+        System.out.println(user.getAccounts());
+    }
+}
+```
+
+### 多对多：
+
+示例：用户和角色
+
+一个用户多个角色，一个角色可赋予多个用户
+
+使用中间表，包含各自主键。在中间表为外键。两实体类各自包含对方一个集合引用。
+
+数据库新建两个表 **role** 和 **user_role**，为角色表，和用户角色中间表。
+
+```sql
+DROP TABLE IF EXISTS `role`;
+
+CREATE TABLE `role` (
+  `ID` int(11) NOT NULL COMMENT '编号',
+  `ROLE_NAME` varchar(30) default NULL COMMENT '角色名称',
+  `ROLE_DESC` varchar(60) default NULL COMMENT '角色描述',
+  PRIMARY KEY  (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+insert  into `role`(`ID`,`ROLE_NAME`,`ROLE_DESC`) values (1,'院长','管理整个学院'),(2,'总裁','管理整个公司'),(3,'校长','管理整个学校');
+
+
+
+DROP TABLE IF EXISTS `user_role`;
+
+CREATE TABLE `user_role` (
+  `UID` int(11) NOT NULL COMMENT '用户编号',
+  `RID` int(11) NOT NULL COMMENT '角色编号',
+  PRIMARY KEY  (`UID`,`RID`),
+  KEY `FK_Reference_10` (`RID`),
+  CONSTRAINT `FK_Reference_10` FOREIGN KEY (`RID`) REFERENCES `role` (`ID`),
+  CONSTRAINT `FK_Reference_9` FOREIGN KEY (`UID`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+insert  into `user_role`(`UID`,`RID`) values (41,1),(45,1),(41,2);
+```
+
