@@ -1004,4 +1004,125 @@ CREATE TABLE `user_role` (
 
 insert  into `user_role`(`UID`,`RID`) values (41,1),(45,1),(41,2);
 ```
-123
+
+Role.java
+
+```java
+private Integer roleId;
+private String roleName;
+private String roleDesc;
+
+//多对多的关系映射：一个角色可以赋予给多个用户
+private List<User> users;
+
+public List<User> getUsers() {return users;}
+
+public void setUsers(List<User> users) {this.users = users;}
+```
+
+RoleDao.xml
+
+```xml
+<!-- 定义role表的ResultMap -->
+<resultMap id="roleMap" type="role">
+   <id property="roleId" column="id"/>
+   <result property="roleName" column="role_name"/>
+   <result property="roleDesc" column="role_desc"/>
+   <collection property="users" ofType="user">
+      <id column="id" property="id"/>
+      <result column="username" property="username"/>
+      <result column="address" property="address"/>
+      <result column="sex" property="sex"/>
+      <result column="birthday" property="birthday"/>
+   </collection>
+</resultMap>
+<!-- 查询所有 -->
+<select id="findAll" resultMap="roleMap">
+   select u.*,r.id as rid,r.role_name,r.role_desc from role r
+   left outer join user_role ur on r.id = ur.rid
+   left outer join user u on u.id = ur.uid
+</select>
+```
+
+得到输出结果：
+
+```shell
+Role{roleId=41, roleName='院长', roleDesc='管理整个学院'}
+[User{id=41, username='老王', sex='男', address='北京', birthday=Tue Feb 27 17:47:08 CST 2018}]
+Role{roleId=45, roleName='院长', roleDesc='管理整个学院'}
+[User{id=45, username='老六', sex='男', address='西藏', birthday=Sun Mar 04 12:04:06 CST 2018}]
+Role{roleId=null, roleName='校长', roleDesc='管理整个学校'}
+```
+
+------
+
+User.java
+
+```java
+private Integer id;
+private String username;
+private String sex;
+private String address;
+private Date birthday;
+
+//多对多的关系映射：一个用户可以具备多个角色
+private List<Role> roles;
+
+public List<Role> getRoles() {return roles;}
+
+public void setRoles(List<Role> roles) {this.roles = roles;}
+```
+
+UserDao.xml
+
+```xml
+<!-- 定义User的resultMap -->
+<resultMap id="userAccountMap" type="user">
+   <id    property="id" column="id"/>
+   <result property="username" column="username"/>
+   <result property="address" column="address"/>
+   <result property="sex" column="sex"/>
+   <result property="birthday" column="birthday"/>
+   <collection property="roles" ofType="role">
+      <id property="roleId" column="rid"/>
+      <result property="roleName" column="role_name"/>
+      <result property="roleDesc" column="role_desc"/>
+   </collection>
+</resultMap>
+
+<!-- 查询所有 -->
+<select id="findAll" resultMap="userAccountMap">
+   select u.*,r.id as rid,r.role_name,r.role_desc from user u
+       left outer join user_role ur on u.id = ur.uid
+       left outer join role r on r.id = ur.rid
+</select>
+```
+
+测试得到输出：
+
+```Java
+@Test
+public void testFindAll(){
+    List<User> users = userDao.findAll();
+    for (User user : users) {
+        System.out.println(user);
+        System.out.println(user.getRoles());
+    }
+}
+```
+
+```shell
+User{id=41, username='老王', sex='男', address='北京', birthday=Tue Feb 27 17:47:08 CST 2018}
+[Role{roleId=1, roleName='院长', roleDesc='管理整个学院'}, Role{roleId=2, roleName='总裁', roleDesc='管理整个公司'}]
+User{id=42, username='小二王', sex='女', address='福建', birthday=Fri Mar 02 15:09:37 CST 2018}
+[]
+User{id=43, username='小二王', sex='女', address='厦门', birthday=Sun Mar 04 11:34:34 CST 2018}
+[]
+User{id=45, username='老六', sex='男', address='西藏', birthday=Sun Mar 04 12:04:06 CST 2018}
+[Role{roleId=1, roleName='院长', roleDesc='管理整个学院'}]
+User{id=46, username='老王', sex='女', address='新疆', birthday=Wed Mar 07 17:37:26 CST 2018}
+[]
+User{id=48, username='小马宝莉', sex='女', address='湖南', birthday=Thu Mar 08 11:44:00 CST 2018}
+[]
+```
+
