@@ -2,6 +2,7 @@ package com.yoyling.domain;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 public class User implements Serializable {
     private Integer id;
@@ -9,6 +10,17 @@ public class User implements Serializable {
     private String sex;
     private String address;
     private Date birthday;
+
+    //多对多的关系映射：一个用户可以具备多个角色
+    private List<Role> roles;
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
 
     public Integer getId() {
         return id;

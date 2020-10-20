@@ -8,10 +8,19 @@
 		<id property="roleId" column="id"/>
 		<result property="roleName" column="role_name"/>
 		<result property="roleDesc" column="role_desc"/>
+		<collection property="users" ofType="user">
+			<id column="id" property="id"/>
+			<result column="username" property="username"/>
+			<result column="address" property="address"/>
+			<result column="sex" property="sex"/>
+			<result column="birthday" property="birthday"/>
+		</collection>
 	</resultMap>
 
 	<!-- 查询所有 -->
 	<select id="findAll" resultMap="roleMap">
-		select * from role;
+		select u.*,r.id as rid,r.role_name,r.role_desc from role r
+		left outer join user_role ur on r.id = ur.rid
+		left outer join user u on u.id = ur.uid
 	</select>
 </mapper>

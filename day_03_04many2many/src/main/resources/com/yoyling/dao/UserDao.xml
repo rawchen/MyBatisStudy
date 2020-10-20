@@ -11,12 +11,18 @@
 		<result property="address" column="address"/>
 		<result property="sex" column="sex"/>
 		<result property="birthday" column="birthday"/>
-
+		<collection property="roles" ofType="role">
+			<id property="roleId" column="rid"/>
+			<result property="roleName" column="role_name"/>
+			<result property="roleDesc" column="role_desc"/>
+		</collection>
 	</resultMap>
 
 	<!-- 查询所有 -->
 	<select id="findAll" resultMap="userAccountMap">
-		select * from user
+		select u.*,r.id as rid,r.role_name,r.role_desc from user u
+        left outer join user_role ur on u.id = ur.uid
+        left outer join role r on r.id = ur.rid
 	</select>
 
 	<!-- 根据id查询用户 -->
