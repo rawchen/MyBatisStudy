@@ -1187,3 +1187,123 @@ index.jsp
 %>
 ```
 
+## 04_01lazy
+
+**延迟加载：**
+
+在真正使用数据时才发起查询，不用时不查询。按需加载（懒加载）。
+
+**立即加载：**
+
+不管用不用只要一调用方法，马上发起查询。
+
+**一对多，多对多：通常用延迟加载。**
+
+**多对一，一对一：通常用立即加载。**
+
+用的时候调用对方配置文件中的一个配置来实现延迟查询功能。
+
+AccountDao.xml
+
+```xml
+<!-- 定义封装account和user的resultMap -->
+<resultMap id="accountUserMap" type="account">
+   <id property="id" column="id"/>
+   <result property="uid" column="uid"/>
+   <result property="money" column="money"/>
+   <!-- 一对一的关系映射：配置封装user的内容
+   select属性指定的内容：查询用户的唯一标识。
+   column属性指定的内容：用户根据id查询时所需的参数值。
+   -->
+   <association property="user" column="uid" javaType="user" select="com.yoyling.dao.UserDao.findById"/>
+</resultMap>
+<!-- 查询所有 -->
+<select id="findAll" resultMap="accountUserMap">
+   select * from account;
+</select>
+```
+
+SqlMapConfig.xml
+
+```xml
+<!-- 配置参数 -->
+<settings>
+   <!-- 开启Mybatis支持延迟加载 -->
+   <setting name="lazyLoadingEnabled" value="true"/>
+   <setting name="aggressiveLazyLoading" value="false"/>
+</settings>
+```
+
+**缓存：**减少和数据库的交互次数，提高执行效率。
+
+经常查询并且不经常改变、数据的正确与否对最终结果影响不大的数据。
+
+**一级缓存：**
+
+SqlSession对象的缓存。当我们执行查询时，查询结果会同时存入到SqlSession提供的一区域，结构为map。
+
+当调用SqlSession的修改，添加，删除，commit()，close()等方法时，就会清空一级缓存。
+
+```java
+@Test
+public void testFirstLevelCache(){
+    User user1 = userDao.findById(41);
+    System.out.println(user1);
+    User user2 = userDao.findById(41);
+    System.out.println(user2);
+    
+    System.out.println(user1==user2);
+}
+```
+
+```java
+@Test
+public void testFirstLevelCache(){
+    User user1 = userDao.findById(41);
+    System.out.println(user1);
+    
+    //再次获取SqlSession对象
+    //sqlSession.close();
+    //sqlSession = factory.openSession();
+    sqlSession.clearCache();
+    
+    userDao = sqlSession.getMapper(UserDao.class);
+    
+    User user2 = userDao.findById(41);
+    System.out.println(user2);
+    System.out.println(user1==user2);
+}
+```
+
+**二级缓存：**
+
+Mybatis中SqlSessionFactory对象的缓存，由同一个SqlSessionFactory对象创建的SqlSession共享其缓存。
+
+二级缓存存放的内容是数据不是对象，因此前后不是同一个对象。
+
+**步骤：**
+
+1. 让Mybatis框架支持二级缓存（在SqlMapConfig.xml中配置）
+2. 让当前的映射文件支持二级缓存（在UserDao.xml中配置）
+3. 让当前的操作支持二级缓存（在select标签中配置）
+
+SqlMapConfig.xml
+
+```xml
+<settings>
+   <setting name="cacheEnabled" value="true"/>
+</settings>
+```
+
+UserDao.xml
+
+```xml
+<!-- 开启user支持二级缓存 -->
+<cache/>
+
+<!-- 根据id查询用户 -->
+<select id="findById" parameterType="int" resultType="user" useCache="true">
+   select * from user where id = #{uid}
+</select>
+```
+
