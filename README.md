@@ -967,6 +967,8 @@ public void testFindAll(){
 }
 ```
 
+## 03_04many2many
+
 ### 多对多：
 
 示例：用户和角色
@@ -1125,3 +1127,63 @@ User{id=46, username='老王', sex='女', address='新疆', birthday=Wed Mar 07 
 User{id=48, username='小马宝莉', sex='女', address='湖南', birthday=Thu Mar 08 11:44:00 CST 2018}
 []
 ```
+
+## 03_05jndi
+
+SqlMapConfig.xml
+
+```xml
+<environments default="mysql">
+   <environment id="mysql">
+      <transactionManager type="JDBC"/>
+      <dataSource type="JNDI">
+         <property name="data_source" value="java:comp/env/jdbc/mybatistest"/>
+      </dataSource>
+   </environment>
+</environments>
+```
+
+META-INF -> context.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+	<Resource 
+		name="jdbc/mybatistest"
+		type="javax.sql.DataSource"
+		auth="Container"
+		maxActive="20"
+		maxWait="10000"
+		maxIdle="5"
+		username="root"
+		password="root"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://localhost:3306/mybatistest"
+	/>
+</Context>
+```
+
+index.jsp
+
+```java
+<%
+   //1.读取配置文件
+   InputStream in = Resources.getResourceAsStream("SqlMapConfig.xml");
+   //2.创建SqlSessionFactory工厂
+   SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+   SqlSessionFactory factory = builder.build(in);
+   //3.使用工厂生产SqlSession对象
+   SqlSession sqlSession = factory.openSession();
+   //4.使用SqlSession创建Dao接口的代理对象
+   UserDao userDao = sqlSession.getMapper(UserDao.class);
+   //5.使用代理对象执行方法
+   List<User> users = userDao.findAll();
+   for (User user : users) {
+      System.out.println(user);
+   }
+   //6.释放资源
+   sqlSession.close();
+   in.close();
+%>
+```
+
