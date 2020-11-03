@@ -5,6 +5,11 @@
 <configuration>
 	<properties resource="jdbcConfig.properties"/>
 
+	<!-- 配置开启二级缓存 -->
+	<settings>
+		<setting name="cacheEnabled" value="true"/>
+	</settings>
+
 	<typeAliases>
 		<package name="com.yoyling.domain"/>
 	</typeAliases>
