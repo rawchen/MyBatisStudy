@@ -1234,6 +1234,8 @@ SqlMapConfig.xml
 </settings>
 ```
 
+## 04_02cache
+
 **缓存：**减少和数据库的交互次数，提高执行效率。
 
 经常查询并且不经常改变、数据的正确与否对最终结果影响不大的数据。
@@ -1307,3 +1309,208 @@ UserDao.xml
 </select>
 ```
 
+## 04_03annotation_mybatis
+
+UserDao.java
+
+```java
+package com.yoyling.dao;
+
+/**
+ * CRUD四个注解: @Select @Insert @Update @Delete
+ */
+public interface UserDao {
+
+	/**
+	 * 查询所有用户
+	 * @return
+	 */
+	@Select("select * from user")
+	List<User> findAll();
+
+	/**
+	 * 保存用户
+	 * @param user
+	 */
+	@Insert("insert into user(username,address,sex,birthday)values(#{username},#{address},#{sex},#{birthday})")
+	void saveUser(User user);
+
+	/**
+	 * 更新用户
+	 * @param user
+	 */
+	@Update("update user set username = #{username},address = #{address},sex = #{sex},birthday = #{birthday} where id = #{id}")
+	void updateUser(User user);
+
+	/**
+	 * 删除用户
+	 * @param userId
+	 */
+	@Delete("delete from user where id = #{id}")
+	void deleteUser(Integer userId);
+
+	/**
+	 * 根据id查询用户
+	 * @param userId
+	 * @return
+	 */
+	@Select("select * from user where id = #{id}")
+	User findById(Integer userId);
+
+	/**
+	 * 根据用户名称模糊查询
+	 * @param userName
+	 * @return
+	 */
+	//@Select("select * from user where username like #{username}")
+	@Select("select * from user where username like '%${value}%'")
+	List<User> findUserByName(String userName);
+
+	/**
+	 * 查询总用户数
+	 * @return
+	 */
+	@Select("select count(*) from user")
+	int findTotalUser();
+}
+```
+
+## 04_04annoOne2Many
+
+**实体属性和数据库表列名的对应：**
+
+UserDao.java
+
+```java
+/**
+ * 查询所有用户
+ * @return
+ */
+@Select("select * from user")
+@Results(id="userMap",value={
+      @Result(id = true,column = "id",property = "userId"),
+      @Result(column = "username",property = "userName"),
+      @Result(column = "address",property = "userAddress"),
+      @Result(column = "sex",property = "userSex"),
+      @Result(column = "birthday",property = "userBirthday")
+})
+List<User> findAll();
+/**
+ * 根据id查询用户
+ * @param userId
+ * @return
+ */
+@Select("select * from user where id = #{id}")
+@ResultMap("userMap")
+User findById(Integer userId);
+```
+
+Account.java
+
+```java
+private Integer id;
+private Integer uid;
+private Double money;
+
+//多对一（Mybatis中称为一对一）的映射：一个账户只能属于一个用户
+private User user;
+
+public User getUser() {return user;}
+
+public void setUser(User user) {this.user = user;}
+```
+
+AccoundDao.java
+
+```java
+/**
+ * 查询所有账户，并且获取每个账户所属的用户信息
+ * @return
+ */
+@Select("select * from account")
+@Results(id = "accountMap",value = {
+      @Result(id = true,column = "id",property = "id"),
+      @Result(column = "uid",property = "uid"),
+      @Result(column = "money",property = "money"),
+      @Result(property = "user",column = "uid",one = @One(select = "com.yoyling.dao.UserDao.findById",fetchType = FetchType.EAGER))
+})
+List<Account> findAll();
+```
+
+**一对多：**
+
+User.java
+
+```java
+//一对多关系映射：一个用户对应多个账户
+private List<Account> accounts;
+```
+
+AccountDao.java
+
+```java
+/**
+ * 根据用户id查询账户信息
+ * @param userId
+ * @return
+ */
+@Select("select * from account where uid = #{userId}")
+List<Account> findAccountByUid(Integer userId);
+```
+
+UserDao.java
+
+```java
+/**
+ * 查询所有用户
+ * @return
+ */
+@Select("select * from user")
+@Results(id="userMap",value={
+      @Result(id = true,column = "id",property = "userId"),
+      @Result(column = "username",property = "userName"),
+      @Result(column = "address",property = "userAddress"),
+      @Result(column = "sex",property = "userSex"),
+      @Result(column = "birthday",property = "userBirthday"),
+      @Result(property = "accounts",column = "id",many = @Many(select = "com.yoyling.dao.AccountDao.findAccountByUid",fetchType = FetchType.LAZY))
+
+})
+List<User> findAll();
+```
+
+**注解开启二级缓存：**
+
+UserDao.java
+
+```java
+@CacheNamespace(blocking = true)
+public interface UserDao {...}
+```
+
+SqlMapConfig.xml
+
+```xml
+<!-- 配置开启二级缓存 -->
+<settings>
+   <setting name="cacheEnabled" value="true"/>
+</settings>
+```
+
+SecondLevelCacheTest.java
+
+```java
+@Test
+public void testFindOne() {
+   SqlSession session = factory.openSession();
+   UserDao userDao = session.getMapper(UserDao.class);
+   User user = userDao.findById(41);
+   System.out.println(user);
+   session.close();//释放一级缓存
+
+   SqlSession session1 = factory.openSession();//再次打开session
+   UserDao userDao1 = session1.getMapper(UserDao.class);
+   User user1 = userDao1.findById(41);
+   System.out.println(user1);
+   session1.close();
+}
+```
